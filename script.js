@@ -1,51 +1,53 @@
-// Theme Toggle
-const toggle = document.getElementById('theme-switch');
-const html = document.documentElement;
+document.addEventListener('DOMContentLoaded', () => {
 
-function setTheme(theme) {
-    html.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-}
-
-function loadTheme() {
-    const saved = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-    if (saved) {
-        setTheme(saved);
-        toggle.checked = saved === 'light';
-    } else {
-        const theme = prefersDark ? 'dark' : 'light';
-        setTheme(theme);
-        toggle.checked = theme === 'light';
-    }
-}
-
-toggle.addEventListener('change', () => {
-    setTheme(toggle.checked ? 'light' : 'dark');
-});
-
-loadTheme();
-
-// Scroll reveal
-const reveals = document.querySelectorAll('.reveal');
-const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) entry.target.classList.add('visible');
+    // 1. Theme Logic
+    const toggle = document.getElementById('theme-switch');
+    toggle.addEventListener('change', () => {
+        document.documentElement.setAttribute('data-theme', toggle.checked ? 'light' : 'dark');
     });
-}, { threshold: 0.1 });
 
-reveals.forEach(el => observer.observe(el));
+    // 2. Custom Cursor
+    const cursor = document.querySelector('.cursor');
+    const follower = document.querySelector('.cursor-follower');
 
-// Navbar scroll
-window.addEventListener('scroll', () => {
-    document.querySelector('.navbar').classList.toggle('scrolled', scrollY > 100);
-});
+    document.addEventListener('mousemove', (e) => {
+        // Asosiy nuqta
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
 
-// Smooth scroll
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', e => {
-        e.preventDefault();
-        document.querySelector(anchor.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+        // Ergashuvchi doira (smooth delay)
+        follower.style.left = e.clientX + 'px';
+        follower.style.top = e.clientY + 'px';
+    });
+
+    // 3. Scroll Reveal
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // 4. Magnetic Effect
+    const magnets = document.querySelectorAll('.magnetic');
+    magnets.forEach(el => {
+        el.addEventListener('mousemove', (e) => {
+            const rect = el.getBoundingClientRect();
+            const x = (e.clientX - rect.left - rect.width / 2) * 0.3;
+            const y = (e.clientY - rect.top - rect.height / 2) * 0.3;
+            el.style.transform = `translate(${x}px, ${y}px)`;
+        });
+        el.addEventListener('mouseleave', () => {
+            el.style.transform = 'translate(0, 0)';
+        });
+    });
+
+    // Hover effect for cursor
+    document.querySelectorAll('a, button, .card').forEach(link => {
+        link.addEventListener('mouseenter', () => follower.style.transform = 'translate(-50%, -50%) scale(2)');
+        link.addEventListener('mouseleave', () => follower.style.transform = 'translate(-50%, -50%) scale(1)');
     });
 });
